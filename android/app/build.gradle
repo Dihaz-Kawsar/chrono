@@ -26,8 +26,10 @@ apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
-    namespace "dev.vicolo.chrono" // Updated namespace for modern AGP
-    compileSdkVersion 35 // Updated for Android 15
+    namespace "dev.vicolo.chrono"
+    compileSdkVersion 35
+    // THIS IS THE FIX: We are forcing the system to use newer tools
+    buildToolsVersion "34.0.0" 
     ndkVersion flutter.ndkVersion
 
     compileOptions {
@@ -44,16 +46,13 @@ android {
     }
 
     defaultConfig {
-        // Chrono specific ID
         applicationId "dev.vicolo.chrono"
-        // Min SDK 21 is standard for Flutter, keeping it safe
-        minSdkVersion 21 
-        targetSdkVersion 35 // Updated for Android 15
+        minSdkVersion 21
+        targetSdkVersion 35
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
 
-    // Preserving the flavors mentioned in the repo docs (dev/prod)
     flavorDimensions "default"
     productFlavors {
         dev {
@@ -69,7 +68,7 @@ android {
     buildTypes {
         release {
             signingConfig signingConfigs.debug
-            minifyEnabled true // Often enabled for release builds
+            minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -82,7 +81,6 @@ flutter {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    // Core dependencies often needed for Android 15 compatibility
     implementation 'androidx.window:window:1.0.0'
     implementation 'androidx.window:window-java:1.0.0'
 }
