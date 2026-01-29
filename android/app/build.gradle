@@ -1,18 +1,14 @@
-import com.android.build.OutputFile
-
-plugins {
-    id "com.android.application"
-    id "kotlin-android"
-    id "dev.flutter.flutter-gradle-plugin"
-}
-
-
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
     localPropertiesFile.withReader('UTF-8') { reader ->
         localProperties.load(reader)
     }
+}
+
+def flutterRoot = localProperties.getProperty('flutter.sdk')
+if (flutterRoot == null) {
+    throw new GradleException("Flutter SDK not found. Define location with flutter.sdk in the local.properties file.")
 }
 
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
@@ -25,18 +21,14 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
-def keystoreProperties = new Properties()
-def keystorePropertiesFile = rootProject.file('key.properties')
-if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-}
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
-    // namespace "com.vicolo.chrono"
-
-    compileSdkVersion 34
+    namespace "dev.vicolo.chrono" // Updated namespace for modern AGP
+    compileSdkVersion 35 // Updated for Android 15
     ndkVersion flutter.ndkVersion
-    
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -52,72 +44,46 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.vicolo.chrono"
-        minSdkVersion 21
-        targetSdkVersion flutter.targetSdkVersion
-        versionCode flutterVersionCode.toInteger()  
+        // Chrono specific ID
+        applicationId "dev.vicolo.chrono"
+        // Min SDK 21 is standard for Flutter, keeping it safe
+        minSdkVersion 21 
+        targetSdkVersion 35 // Updated for Android 15
+        versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
-        multiDexEnabled true
     }
-    signingConfigs {
-        release {
-            keyAlias keystoreProperties['keyAlias']
-            keyPassword keystoreProperties['keyPassword']
-            storeFile = file('release-key.jks')
-            storePassword keystoreProperties['storePassword']        
+
+    // Preserving the flavors mentioned in the repo docs (dev/prod)
+    flavorDimensions "default"
+    productFlavors {
+        dev {
+            dimension "default"
+            applicationIdSuffix ".dev"
+            versionNameSuffix "-dev"
+        }
+        prod {
+            dimension "default"
         }
     }
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
-
-            minifyEnabled true
+            signingConfig signingConfigs.debug
+            minifyEnabled true // Often enabled for release builds
             shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
-    }
-
-    applicationVariants.all { variant ->
-    variant.outputs.each { output ->
-        // For each separate APK per architecture, set a unique version code as described here:
-        // http://tools.android.com/tech-docs/new-build-system/user-guide/apk-splits
-        def versionCodes = ["armeabi-v7a":1, "arm64-v8a":2, x86_64:3]
-        def abi = output.getFilter(OutputFile.ABI)
-        if (abi != null) {  // null for the universal-debug, universal-release variants
-            output.versionCodeOverride =
-                    variant.versionCode * 10 + versionCodes.get(abi)}
-      }
-    }
-
-    flavorDimensions "app"
-
-    productFlavors {
-      prod {
-        dimension "app"
-        resValue "string", "app_name", "Chrono"
-      }
-
-      dev {
-        dimension "app"
-        resValue "string", "app_name", "Chrono Dev"
-        // versionNameSuffix "-dev",
-        applicationIdSuffix ".dev"
-      }
-    }
-
-    dependenciesInfo {
-        // Disables dependency metadata when building APKs.
-        // This is for the signed .apk that we post to GitHub, so the dependency metadata isn't relevant.
-        includeInApk false
-        // Enable dependency metadata when building Android App Bundles.
-        // This is for the Google Play Store, so we'll want the metadata.
-        includeInBundle true
     }
 }
 
-
-
 flutter {
     source '../..'
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    // Core dependencies often needed for Android 15 compatibility
+    implementation 'androidx.window:window:1.0.0'
+    implementation 'androidx.window:window-java:1.0.0'
 }
 
