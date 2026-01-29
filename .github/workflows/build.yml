@@ -21,14 +21,14 @@ jobs:
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.19.0'
+        # THIS IS THE FIX: Upgraded to 3.24.0 to support the new Dart requirements
+        flutter-version: '3.24.0'
         channel: 'stable'
 
     - name: Install Dependencies
       run: flutter pub get
 
     - name: Build APK
-      # We use the 'prod' flavor as required by the app
       run: flutter build apk --release --flavor prod --split-per-abi
 
     - name: Upload APK
