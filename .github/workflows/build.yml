@@ -21,9 +21,13 @@ jobs:
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
       with:
-        # THIS IS THE FIX: Upgraded to 3.24.0 to support the new Dart requirements
         flutter-version: '3.24.0'
         channel: 'stable'
+
+    # --- THIS IS THE NEW FIX ---
+    - name: Fix Color Library
+      run: flutter pub add material_color_utilities:^0.11.1
+    # ---------------------------
 
     - name: Install Dependencies
       run: flutter pub get
